@@ -37,5 +37,6 @@ namespace SistemaGestionDocumentos.API.Models
         // Relaciones de navegaciom
         public Usuario UsuarioReceptor { get; set; }
         public Documento DocumentoRelacionado { get; set; }
+        
     }
 }
