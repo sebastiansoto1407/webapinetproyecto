@@ -154,3 +154,4 @@ C:\Users\hp\Documents\web3\webapiproyecto\SistemaGestionDocumentos.API\obj\Debug
 C:\Users\hp\Documents\web3\webapiproyecto\SistemaGestionDocumentos.API\obj\Debug\net9.0\SistemaGestionDocumentos.API.pdb
 C:\Users\hp\Documents\web3\webapiproyecto\SistemaGestionDocumentos.API\obj\Debug\net9.0\SistemaGestionDocumentos.API.genruntimeconfig.cache
 C:\Users\hp\Documents\web3\webapiproyecto\SistemaGestionDocumentos.API\obj\Debug\net9.0\ref\SistemaGestionDocumentos.API.dll
+C:\Users\hp\Documents\web3\webapiproyecto\SistemaGestionDocumentos.API\obj\Debug\net9.0\SistemaGestionDocumentos.API.sourcelink.json

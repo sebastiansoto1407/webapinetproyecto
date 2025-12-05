@@ -10,6 +10,7 @@ namespace SistemaGestionDocumentos.API.Models
     {
         /// <summary>Identificador unico del documento</summary>
         public int IdentificadorDocumento { get; set; }
+        
 
         /// <summary>Nombre descriptivo del documento (ej: "Propuesta de Proyecto Q4")</summary>
         public string NombreDescriptivoDelDocumento { get; set; } = "";

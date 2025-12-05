@@ -2,8 +2,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SistemaGestionDocumentos.API.Data;
 using SistemaGestionDocumentos.API.Models;
+using System.ComponentModel.DataAnnotations;
 using System.Security.Cryptography;
 using System.Text;
+
 
 namespace SistemaGestionDocumentos.API.Controllers
 {
@@ -19,12 +21,14 @@ namespace SistemaGestionDocumentos.API.Controllers
         private readonly SistemaGestionDocumentosDbContext _contextoBD;
         private readonly ILogger<UsuariosController> _registradorDeLog;
 
-        /// <summary>Constructor con inyeccion de dependencias</summary>
+
+        /// <summary>Constructor con inyección de dependencias</summary>
         public UsuariosController(SistemaGestionDocumentosDbContext contextoBD, ILogger<UsuariosController> registrador)
         {
             _contextoBD = contextoBD;
             _registradorDeLog = registrador;
         }
+
 
         /// <summary>
         /// Endpoint para registrar un nuevo usuario
@@ -36,31 +40,37 @@ namespace SistemaGestionDocumentos.API.Controllers
         {
             try
             {
-                //Validar que el correo no exista
+                // Validar que el correo no exista
                 var usuarioYaExiste = await _contextoBD.UsuariosDelSistema
                     .FirstOrDefaultAsync(u => u.CorreoElectronicoDelUsuario == datosPeticionRegistro.CorreoElectronico);
+
 
                 if (usuarioYaExiste != null)
                     return BadRequest(new { mensaje = "El correo ya está registrado en el sistema", exitoso = false });
 
-                //Hash de la contraseña
+
+                // Hash de la contraseña
                 var contraseñaHasheada = ObtenerHashDelaSHA256(datosPeticionRegistro.Contraseña);
 
-                //Crear nuevo usuario
+
+                // Crear nuevo usuario
                 var nuevoUsuario = new Usuario
                 {
                     CorreoElectronicoDelUsuario = datosPeticionRegistro.CorreoElectronico,
                     ContraseñaHashDelUsuario = contraseñaHasheada,
                     NombreCompletoDelUsuario = datosPeticionRegistro.NombreCompleto,
-                    RolDelUsuario = datosPeticionRegistro.Rol ?? "Solicitante", 
+                    RolDelUsuario = datosPeticionRegistro.Rol ?? "Solicitante",
                     FechaCreacionDelUsuario = DateTime.UtcNow,
                     IndicadorUsuarioActivo = true
                 };
 
+
                 _contextoBD.UsuariosDelSistema.Add(nuevoUsuario);
                 await _contextoBD.SaveChangesAsync();
 
+
                 _registradorDeLog.LogInformation($"Nuevo usuario registrado: {datosPeticionRegistro.CorreoElectronico}");
+
 
                 return CreatedAtAction(nameof(ObtenerUsuarioPorId), new { id = nuevoUsuario.IdentificadorUsuario },
                     new { mensaje = "Usuario registrado exitosamente", usuarioId = nuevoUsuario.IdentificadorUsuario, exitoso = true });
@@ -72,6 +82,7 @@ namespace SistemaGestionDocumentos.API.Controllers
             }
         }
 
+
         /// <summary>
         /// Endpoint para login de usuario
         /// POST: api/usuarios/login
@@ -82,22 +93,27 @@ namespace SistemaGestionDocumentos.API.Controllers
         {
             try
             {
-                //buscar usuario por correo
+                // Buscar usuario por correo
                 var usuarioEncontrado = await _contextoBD.UsuariosDelSistema
                     .FirstOrDefaultAsync(u => u.CorreoElectronicoDelUsuario == datosLogin.CorreoElectronico);
 
+
                 if (usuarioEncontrado == null)
                     return Unauthorized(new { mensaje = "Correo o contraseña inválidos", exitoso = false });
+
 
                 // Verificar contraseña
                 var contraseñaDelSistemaHasheada = ObtenerHashDelaSHA256(datosLogin.Contraseña);
                 if (usuarioEncontrado.ContraseñaHashDelUsuario != contraseñaDelSistemaHasheada)
                     return Unauthorized(new { mensaje = "Correo o contraseña inválidos", exitoso = false });
 
+
                 if (!usuarioEncontrado.IndicadorUsuarioActivo)
                     return Unauthorized(new { mensaje = "El usuario ha sido desactivado", exitoso = false });
 
+
                 _registradorDeLog.LogInformation($"Usuario login exitoso: {datosLogin.CorreoElectronico}");
+
 
                 return Ok(new
                 {
@@ -115,6 +131,7 @@ namespace SistemaGestionDocumentos.API.Controllers
                 return StatusCode(500, new { mensaje = "Error interno del servidor", exitoso = false });
             }
         }
+
 
         /// <summary>
         /// Endpoint para obtener todos los usuarios
@@ -137,6 +154,7 @@ namespace SistemaGestionDocumentos.API.Controllers
                     })
                     .ToListAsync();
 
+
                 return Ok(usuariosDelSistema);
             }
             catch (Exception excepcion)
@@ -145,6 +163,7 @@ namespace SistemaGestionDocumentos.API.Controllers
                 return StatusCode(500, new { mensaje = "Error interno del servidor", exitoso = false });
             }
         }
+
 
         /// <summary>
         /// Endpoint para obtener un usuario por ID
@@ -158,8 +177,10 @@ namespace SistemaGestionDocumentos.API.Controllers
                 var usuarioEncontrado = await _contextoBD.UsuariosDelSistema
                     .FirstOrDefaultAsync(u => u.IdentificadorUsuario == id);
 
+
                 if (usuarioEncontrado == null)
                     return NotFound(new { mensaje = "Usuario no encontrado", exitoso = false });
+
 
                 return Ok(new
                 {
@@ -178,6 +199,7 @@ namespace SistemaGestionDocumentos.API.Controllers
             }
         }
 
+
         /// <summary>
         /// Endpoint para actualizar rol de usuario (solo Admin)
         /// PUT: api/usuarios/{id}/actualizar-rol
@@ -192,16 +214,21 @@ namespace SistemaGestionDocumentos.API.Controllers
                 var usuarioAActualizar = await _contextoBD.UsuariosDelSistema
                     .FirstOrDefaultAsync(u => u.IdentificadorUsuario == id);
 
+
                 if (usuarioAActualizar == null)
                     return NotFound(new { mensaje = "Usuario no encontrado", exitoso = false });
+
 
                 var rolAnterior = usuarioAActualizar.RolDelUsuario;
                 usuarioAActualizar.RolDelUsuario = datosActualizacion.NuevoRol;
 
+
                 _contextoBD.UsuariosDelSistema.Update(usuarioAActualizar);
                 await _contextoBD.SaveChangesAsync();
 
+
                 _registradorDeLog.LogInformation($"Rol del usuario {id} actualizado de {rolAnterior} a {datosActualizacion.NuevoRol}");
+
 
                 return Ok(new { mensaje = "Rol actualizado exitosamente", exitoso = true });
             }
@@ -211,6 +238,7 @@ namespace SistemaGestionDocumentos.API.Controllers
                 return StatusCode(500, new { mensaje = "Error interno del servidor", exitoso = false });
             }
         }
+
 
         /// <summary>
         /// Endpoint para desactivar un usuario
@@ -224,14 +252,18 @@ namespace SistemaGestionDocumentos.API.Controllers
                 var usuarioADesactivar = await _contextoBD.UsuariosDelSistema
                     .FirstOrDefaultAsync(u => u.IdentificadorUsuario == id);
 
+
                 if (usuarioADesactivar == null)
                     return NotFound(new { mensaje = "Usuario no encontrado", exitoso = false });
+
 
                 usuarioADesactivar.IndicadorUsuarioActivo = false;
                 _contextoBD.UsuariosDelSistema.Update(usuarioADesactivar);
                 await _contextoBD.SaveChangesAsync();
 
+
                 _registradorDeLog.LogInformation($"Usuario {id} desactivado");
+
 
                 return Ok(new { mensaje = "Usuario desactivado exitosamente", exitoso = true });
             }
@@ -242,8 +274,9 @@ namespace SistemaGestionDocumentos.API.Controllers
             }
         }
 
+
         /// <summary>
-        /// Metodo privado para crear hash SHA256 de una contraseña
+        /// Método privado para crear hash SHA256 de una contraseña
         /// </summary>
         private string ObtenerHashDelaSHA256(string textoAConvertir)
         {
@@ -256,27 +289,46 @@ namespace SistemaGestionDocumentos.API.Controllers
         }
     }
 
+
     //MODELOS DTO 
+
 
     /// <summary>Modelo para el registro de un nuevo usuario</summary>
     public class ModeloRegistroUsuario
     {
-        public string CorreoElectronico { get; set; }
-        public string Contraseña { get; set; }
-        public string NombreCompleto { get; set; }
-        public string Rol { get; set; }
+        [Required(ErrorMessage = "El correo es requerido")]
+        public required string CorreoElectronico { get; set; }
+
+        [Required(ErrorMessage = "La contraseña es requerida")]
+        [StringLength(100, MinimumLength = 6, ErrorMessage = "La contraseña debe tener entre 6 y 100 caracteres")]
+        public required string Contraseña { get; set; }
+
+        [Required(ErrorMessage = "El nombre completo es requerido")]
+        [StringLength(150, ErrorMessage = "El nombre no puede exceder 150 caracteres")]
+        public required string NombreCompleto { get; set; }
+
+        [StringLength(50, ErrorMessage = "El rol no puede exceder 50 caracteres")]
+        public string? Rol { get; set; }
     }
 
-    /// <summary>Modelo para el login de usuario     </summary>
+
+    /// <summary>Modelo para el login de usuario</summary>
     public class ModeloLoginUsuario
     {
-        public string CorreoElectronico { get; set; }
-        public string Contraseña { get; set; }
+        [Required(ErrorMessage = "El correo es requerido")]
+        [EmailAddress(ErrorMessage = "Formato de correo inválido")]
+        public required string CorreoElectronico { get; set; }
+
+        [Required(ErrorMessage = "La contraseña es requerida")]
+        public required string Contraseña { get; set; }
     }
+
 
     /// <summary>Modelo para actualizar rol de usuario</summary>
     public class ModeloActualizacionRolUsuario
     {
-        public string NuevoRol { get; set; }
+        [Required(ErrorMessage = "El nuevo rol es requerido")]
+        [StringLength(50, ErrorMessage = "El rol no puede exceder 50 caracteres")]
+        public required string NuevoRol { get; set; }
     }
 }

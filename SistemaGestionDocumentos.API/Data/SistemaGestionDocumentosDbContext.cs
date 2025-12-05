@@ -1,10 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using SistemaGestionDocumentos.API.Models;
 
+
 namespace SistemaGestionDocumentos.API.Data
 {
     /// <summary>
-    /// Contexto de base de datos para el sistema de gestipn de documentos
+    /// Contexto de base de datos para el sistema de gestión de documentos
     /// Configura todas las entidades y sus relaciones
     /// </summary>
     public class SistemaGestionDocumentosDbContext : DbContext
@@ -14,6 +15,7 @@ namespace SistemaGestionDocumentos.API.Data
         {
         }
 
+
         // DbSets para todas las entidades
         public DbSet<Usuario> UsuariosDelSistema { get; set; }
         public DbSet<Documento> DocumentosDelSistema { get; set; }
@@ -22,9 +24,14 @@ namespace SistemaGestionDocumentos.API.Data
         public DbSet<AuditoriaAccion> AuditoriaAccionDelSistema { get; set; }
         public DbSet<NotificacionPendiente> NotificacionesPendientesDelSistema { get; set; }
 
+
         protected override void OnModelCreating(ModelBuilder constructor)
         {
             base.OnModelCreating(constructor);
+
+            // ✅ CLAVE PRIMARIA PARA AUDITORIA - FIX PRINCIPAL
+            constructor.Entity<AuditoriaAccion>()
+                .HasKey(a => a.IdentificadorRegistroAuditoria);
 
 
             // Relacion Usuario -> Documentos
@@ -34,12 +41,14 @@ namespace SistemaGestionDocumentos.API.Data
                 .HasForeignKey(d => d.IdentificadorUsuarioPropietarioDelDocumento)
                 .OnDelete(DeleteBehavior.Cascade);
 
+
             // Relacion Documento -> Versiones
             constructor.Entity<VersionDocumento>()
                 .HasOne(v => v.DocumentoAlQuePerteneceLaVersion)
                 .WithMany(d => d.VersionesDelDocumento)
                 .HasForeignKey(v => v.IdentificadorDocumentoPerteneceVersion)
                 .OnDelete(DeleteBehavior.Cascade);
+
 
             // Relacion Documento -> Workflow Aprobación
             constructor.Entity<WorkflowAprobacion>()
@@ -48,33 +57,38 @@ namespace SistemaGestionDocumentos.API.Data
                 .HasForeignKey(w => w.IdentificadorDocumentoAprobar)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Relacio Usuario Aprobador -> Workflow Aprobacion
+
+            // Relación Usuario Aprobador -> Workflow Aprobación
             constructor.Entity<WorkflowAprobacion>()
                 .HasOne(w => w.UsuarioQueAprueba)
                 .WithMany(u => u.AprobacionesDelUsuario)
                 .HasForeignKey(w => w.IdentificadorUsuarioAprobadorDelDocumento)
                 .OnDelete(DeleteBehavior.NoAction);
 
-            // Relacion Usuario -> Auditoria
+
+            // Relación Usuario -> Auditoría
             constructor.Entity<AuditoriaAccion>()
                 .HasOne(a => a.UsuarioQueRealiza)
                 .WithMany(u => u.AccionesAuditoriasDelUsuario)
                 .HasForeignKey(a => a.IdentificadorUsuarioQueRealizaAccion)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Relacion Usuario -> Notificaciones (como receptor)
+
+            // Relación Usuario -> Notificaciones (como receptor)
             constructor.Entity<NotificacionPendiente>()
                 .HasOne(n => n.UsuarioReceptor)
                 .WithMany(u => u.NotificacionesDelUsuario)
                 .HasForeignKey(n => n.IdentificadorUsuarioReceptorNotificacion)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Relacion Documento -> Notificaciones
+
+            // Relación Documento -> Notificaciones
             constructor.Entity<NotificacionPendiente>()
                 .HasOne(n => n.DocumentoRelacionado)
                 .WithMany(d => d.NotificacionesDelDocumento)
                 .HasForeignKey(n => n.IdentificadorDocumentoRelacionadoNotificacion)
                 .OnDelete(DeleteBehavior.SetNull);
+            
         }
     }
 }

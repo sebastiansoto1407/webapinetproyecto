@@ -1,35 +1,36 @@
 using System;
 
+
 namespace SistemaGestionDocumentos.API.Models
 {
     /// <summary>
-    /// Entidad que registra las diferentes versiones de un documento
-    /// sotooooo
+    /// Entidad que registra todas las acciones realizadas en el sistema
+    /// Quién hizo qué, cuándo, dónde y en qué documento (si aplica)
     /// </summary>
-    public class VersionDocumento
+    public class AuditoriaAccion
     {
-        /// <summary>Identificador unico de la version</summary>
-        public int IdentificadorVersionDocumento { get; set; }
+        /// <summary>Identificador único del registro de auditoría - Clave Primaria</summary>
+        public int IdentificadorRegistroAuditoria { get; set; }
 
-        /// <summary>ID del documento al que pertenece esta version</summary>
-        public int IdentificadorDocumentoPerteneceVersion { get; set; }
+        /// <summary>ID del usuario que realizó la acción (Clave Foránea)</summary>
+        public int IdentificadorUsuarioQueRealizaAccion { get; set; }
 
-        /// <summary>Nombre original del archivo de esta version</summary>
-        public string NombreArchivoDelVersionDocumento { get; set; } = "";
+        /// <summary>Descripción de la acción realizada</summary>
+        public string DescripcionAccionRealizada { get; set; } = "";
 
-        /// <summary>Ruta fisica del archivo en esta version</summary>
-        public string RutaFisicaDelArchivoVersion { get; set; } = "";
+        /// <summary>Fecha y hora exacta de la acción en UTC</summary>
+        public DateTime FechaHoraExactaAccion { get; set; } = DateTime.UtcNow;
 
-        /// <summary>Número secuencial de la version </summary>
-        public int NumeroSecuencialDelVersionDocumento { get; set; }
+        /// <summary>Detalles adicionales o contexto de la acción</summary>
+        public string DetallesAdicionalesAccion { get; set; } = "";
 
-        /// <summary>Fecha y hora de creacion de esta version</summary>
-        public DateTime FechaCreacionDelVersionDocumento { get; set; } = DateTime.UtcNow;
+        /// <summary>ID del documento relacionado a la acción (opcional)</summary>
+        public int? IdentificadorDocumentoRelacionadoAccion { get; set; }
 
-        /// <summary>Comentarios o cambios realizados en esta versio</summary>
-        public string ComentariosDelCambioDeVersion { get; set; } = "";
+        /// <summary>Dirección IP del dispositivo desde donde se realizó la acción</summary>
+        public string DireccionIPDelDispositivoAccion { get; set; } = "";
 
-        // Relacion de navegacio
-        public Documento DocumentoAlQuePerteneceLaVersion { get; set; }
+        /// <summary>Navegación - Relación con Usuario</summary>
+        public Usuario UsuarioQueRealiza { get; set; }
     }
 }
